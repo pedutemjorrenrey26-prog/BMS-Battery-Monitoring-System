@@ -30,7 +30,7 @@ useEffect(() => {
 
   const fetchReading = async () => {
     try {
-      const response = await fetch('/.netlify/functions/blynk')
+      const response = await fetch('/api/blynk')
       const data = await response.json()
 
       if (!response.ok) {
