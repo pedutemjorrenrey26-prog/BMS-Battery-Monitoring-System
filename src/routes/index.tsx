@@ -8,11 +8,56 @@ type Page = 'dashboard' | 'test-results' | 'system-information'
 const pages = [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'test-results', label: 'Test Results', icon: FlaskConical }, { id: 'system-information', label: 'System Information', icon: Cpu }] as const
 const findings = [ ['Average system voltage', '13.92', 'V'], ['Average reference voltage', '13.32', 'V'], ['Average absolute error', '0.628', 'V'], ['Average voltage percentage error', '4.66', '%'] ]
 const hardware = [{ icon: Cpu, name: 'LILYGO TTGO T-SIM A7670E R2', role: 'Microcontroller & cellular module', detail: 'Collects sensor readings and transmits battery telemetry.' }, { icon: Zap, name: 'INA219', role: 'Voltage / current sensor', detail: 'Measures electrical parameters from the battery monitoring circuit.' }, { icon: Thermometer, name: 'DS18B20', role: 'Temperature sensor', detail: 'Measures battery temperature in degrees Celsius.' }, { icon: Radio, name: 'GSM communication', role: 'Device connectivity', detail: 'Provides the cellular connection between the device and cloud.' }, { icon: Activity, name: 'Blynk IoT platform', role: 'Cloud telemetry platform', detail: 'Receives device data for monitoring and future dashboard integration.' }]
+ type LiveReading = {
+  connected: boolean
+  voltage?: number
+  temperature?: number
+  soc?: number
+  condition?: string
+  updatedAt?: string
+  error?: string
+}
 function App() {
+
  const [page, setPage] = useState<Page>('dashboard')
  const [menu, setMenu] = useState(false)
  const [help, setHelp] = useState(false)
+ const [liveReading, setLiveReading] = useState<LiveReading | null>(null)
+const [connectionError, setConnectionError] = useState('')
  useEffect(() => { const sync = () => { const hash = window.location.hash.slice(1); setPage(pages.some(p => p.id === hash) ? hash as Page : 'dashboard') }; sync(); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync) }, [])
+useEffect(() => {
+  let active = true
+
+  const fetchReading = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/blynk')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not load Blynk readings.')
+      }
+
+      if (active) {
+        setLiveReading(data)
+        setConnectionError(
+          data.connected ? '' : 'Your Blynk device is offline.'
+        )
+      }
+    } catch {
+      if (active) {
+        setConnectionError('Could not connect to the Blynk service.')
+      }
+    }
+  }
+
+  fetchReading()
+  const timer = window.setInterval(fetchReading, 10000)
+
+  return () => {
+    active = false
+    window.clearInterval(timer)
+  }
+}, [])
  return <div className="app-shell">
   <aside id="primary-sidebar" className={`sidebar ${menu ? 'open' : ''}`}>
    <a href="#dashboard" className="brand"><span className="brand-symbol"><Zap size={24} fill="currentColor" /></span><span>AutoVolt<span className="brand-sub">MONITOR</span></span></a>
@@ -26,8 +71,8 @@ function App() {
    <header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" onClick={() => setMenu(!menu)} aria-label="Toggle navigation" aria-expanded={menu} aria-controls="primary-sidebar">{menu ? <X/> : <Menu/>}</button><span>Workspace</span><ChevronRight size={14}/><strong>{pages.find(p => p.id === page)?.label}</strong></div><span className="top-status"><span className="status-dot amber"/>Demo environment</span></header>
    <main id="main-content">
     <div className="page-heading"><div><div className="eyebrow">AUTOMOTIVE BATTERY MONITORING</div><h1>{page === 'dashboard' ? 'Battery overview' : page === 'test-results' ? 'Test results' : 'System information'}</h1><p>{page === 'dashboard' ? 'Your battery’s vital signs. All in one place.' : page === 'test-results' ? 'A closer look at the findings behind the system.' : 'The hardware and connectivity behind AutoVolt Monitor.'}</p></div><span className="outline-pill"><CarFront size={17}/> Conventional 12V battery</span></div>
-    <div className="demo-banner"><div className="banner-icon"><Unplug size={21}/></div><div><strong>Demo Mode — Not Connected</strong><p>You're viewing sample data. Connect your IoT device to start monitoring real battery readings.</p></div><span className="sample-pill">SAMPLE DATA</span></div>
-    {page === 'dashboard' ? <Dashboard/> : page === 'test-results' ? <Results/> : <SystemInfo/>}
+    <div className="demo-banner"><div className="banner-icon">{liveReading?.connected ? <Radio size={21} /> : <Unplug size={21} />}</div><div><strong>{liveReading?.connected ? 'Blynk Connected' : 'Waiting for Device Connection'}</strong><p>{liveReading?.connected ? 'Battery readings are being retrieved from Blynk.' : connectionError || 'Checking your device connection...'}</p></div><span className="sample-pill">{liveReading?.connected ? 'LIVE DATA' : 'NOT CONNECTED'}</span></div>
+   {page === 'dashboard' ? <Dashboard liveReading={liveReading} connectionError={connectionError}/> : page === 'test-results' ? <Results/> : <SystemInfo/>}
     <footer className="page-footer"><span><ShieldCheck size={14}/> Developed for academic research</span><span>AutoVolt Monitor <b>·</b> IoT-Based Battery Monitoring System</span></footer>
    </main>
   </div>
@@ -42,18 +87,31 @@ function App() {
    }}><button autoFocus className="icon-button close-button" onClick={() => setHelp(false)} aria-label="Close about dialog"><X/></button><span className="eyebrow">THE THESIS PROJECT</span><h2 id="about-title">AutoVolt Monitor</h2><p>Development of IoT-Based Battery Monitoring System for Conventional 12V Automotive Battery.</p><p>This demonstration uses static sample telemetry. The test results are the supplied thesis findings. Device and Blynk connections are not configured.</p><a className="primary-button" href="#system-information" onClick={() => setHelp(false)}>Explore the system <ArrowRight size={16}/></a></section></div>}
  </div>
 }
-function Dashboard() {
+function Dashboard({
+  liveReading,
+  connectionError,
+}: {
+  liveReading: LiveReading | null
+  connectionError: string
+}) {
  const [range, setRange] = useState<keyof typeof sampleHistory>('1H')
  const [table, setTable] = useState(false)
  const values = sampleHistory[range]
+ const voltage = liveReading?.voltage
+const temperature = liveReading?.temperature
+const soc = liveReading?.soc
+const condition = liveReading?.condition
  const points = values.map((v, i) => `${52 + i * 54},${185 - (v - 12.4) * 420}`).join(' ')
  return <>
  <div className="section-label"><span><span className="status-dot blue"/> BATTERY TELEMETRY</span><span>Illustrative readings · Not live</span></div>
  <div className="metrics-grid">
-  <Metric title="Battery voltage" icon={Zap} value={reading.voltage.toFixed(2)} unit="V" description="Sample voltage reading" accent="blue"><div className="mini-bars">{[25,32,27,42,35,48,44,53,48,60,56,65,61,72,68,80,75,86,80,94,88,100].map((h,i)=><i key={i} style={{height:`${h}%`}}/>)}</div></Metric>
-  <Metric title="Battery temperature" icon={Thermometer} value={reading.temperature.toFixed(1)} unit="°C" description="Sample sensor temperature" accent="orange"><div className="temp-track"><span/></div><div className="scale-label"><span>Cool</span><span>Warm</span></div></Metric>
-  <Metric title="State of charge" icon={BatteryCharging} value={String(reading.soc)} unit="%" description="Sample estimated charge" accent="cyan"><div className="charge-track"><span/></div><div className="scale-label"><span>0%</span><span>100%</span></div></Metric>
-  <Metric title="Battery condition" icon={ShieldCheck} value="Normal" unit="" description="Illustrative condition only" accent="green"><span className="condition-caption"><span className="status-dot green"/> Sample status · No live assessment</span></Metric>
+ <Metric title="Battery voltage" icon={Zap} value={voltage !== undefined ? voltage.toFixed(2) : '--'} unit="V" description={voltage !== undefined ? 'Live Blynk reading' : 'Waiting for live reading'} accent="blue"><div className="mini-bars">{[25,32,27,42,35,48,44,53].map((h,i)=><span key={i} style={{height:`${h}%`}} />)}</div></Metric>
+
+<Metric title="Battery temperature" icon={Thermometer} value={temperature !== undefined ? temperature.toFixed(1) : '--'} unit="°C" description={temperature !== undefined ? 'Live Blynk reading' : 'Waiting for live reading'} accent="orange"><div className="temp-track"><span style={{width:`${Math.min(100,Math.max(0,((temperature ?? 0)/100)*100))}%`}} /></div></Metric>
+
+<Metric title="State of charge" icon={BatteryCharging} value={soc !== undefined ? String(soc) : '--'} unit="%" description={soc !== undefined ? 'Live Blynk reading' : 'Waiting for live reading'} accent="cyan"><div className="charge-track"><span style={{width:`${Math.min(100,Math.max(0,soc ?? 0))}%`}} /></div></Metric>
+
+<Metric title="Battery condition" icon={ShieldCheck} value={condition ?? '--'} unit="" description={condition ? 'Reported by Blynk' : 'Waiting for live reading'} accent="green"><span className="condition-caption">{condition ? 'Device-reported status' : 'No status received'}</span></Metric>
  </div>
  <div className="dashboard-middle">
   <section className="panel history-panel"><div className="panel-heading"><div><h2>Voltage history <span className="tiny-tag">SAMPLE</span></h2><p>A snapshot of battery voltage over time</p></div><div className="segmented" aria-label="History period">{(['1H','6H','24H'] as const).map(r=><button key={r} onClick={()=>setRange(r)} className={r===range?'selected':''} aria-pressed={r===range}>{r}</button>)}</div></div>
