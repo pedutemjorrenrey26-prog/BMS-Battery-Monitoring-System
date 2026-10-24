@@ -60,7 +60,7 @@ useEffect(() => {
 }, [])
  return <div className="app-shell">
   <aside id="primary-sidebar" className={`sidebar ${menu ? 'open' : ''}`}>
-   <a href="#dashboard" className="brand"><span className="brand-symbol"><Zap size={24} fill="currentColor" /></span><span>AutoVolt<span className="brand-sub">MONITOR</span></span></a>
+   <a href="#dashboard" className="brand"><span className="brand-symbol"><Zap size={24} fill="currentColor" /></span><span>BMS<span className="brand-sub">BATTERY MONITORING SYSTEM</span></span></a>
    <div className="workspace-label">WORKSPACE</div>
    <nav aria-label="Main navigation">{pages.map(p => <a key={p.id} href={`#${p.id}`} onClick={() => setMenu(false)} className={page === p.id ? 'nav-item active' : 'nav-item'} aria-current={page === p.id ? 'page' : undefined}><p.icon size={19}/>{p.label}{page === p.id && <span className="nav-dot"/>}</a>)}</nav>
    <div className="sidebar-project"><div className="small-icon"><CarFront size={20}/></div><strong>Built for the road.</strong><p>Designed for a smarter look<br/>at your battery’s health.</p><span className="tag">12V AUTOMOTIVE SYSTEM</span></div>
