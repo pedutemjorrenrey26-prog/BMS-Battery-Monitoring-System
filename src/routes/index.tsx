@@ -173,7 +173,7 @@ const points = values
   })
   .join(' ')
  return <>
- <div className="section-label"><span><span className="status-dot blue"/> BATTERY TELEMETRY</span><span>Illustrative readings · Not live</span></div>
+<div className="section-label"><span><span className="status-dot blue"/> BATTERY TELEMETRY</span><span>Live battery monitoring</span></div>
  <div className="metrics-grid">
  <Metric title="Battery voltage" icon={Zap} value={typeof voltage === 'number' ? voltage.toFixed(2) : '--'} unit="V" description={typeof voltage === 'number' ? 'Live Blynk reading' : 'Waiting for live reading'} accent="blue"><div className="mini-bars">{[25,32,27,42,35,48,44,53].map((h,i)=><span key={i} style={{height:`${h}%`}} />)}</div></Metric>
 
