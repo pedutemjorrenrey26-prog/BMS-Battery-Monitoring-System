@@ -28,6 +28,7 @@ const [connectionError, setConnectionError] = useState('')
 useEffect(() => {
   let active = true
 
+
   const fetchReading = async () => {
     try {
       const response = await fetch('/api/blynk')
@@ -37,33 +38,36 @@ useEffect(() => {
         throw new Error(data.error || 'Could not load Blynk readings.')
       }
 
- if (active) {
-  setLiveReading(data)
-  setConnectionError(
-    data.connected ? '' : 'Your Blynk device is offline.'
-  )
+      if (active) {
+        setLiveReading(data)
+        setConnectionError(
+          data.connected ? '' : 'Your Blynk device is offline.'
+        )
 
-  if (
-    data.connected &&
-    Number.isFinite(Number(data.voltage)) &&
-    Number(data.voltage) > 0
-  ) {
-    const now = Date.now()
-    const lastSaved = Number(sessionStorage.getItem('lastVoltageSavedAt') || 0)
+        if (
+          data.connected &&
+          Number.isFinite(Number(data.voltage)) &&
+          Number(data.voltage) > 0
+        ) {
+          const now = Date.now()
+          const lastSaved = Number(sessionStorage.getItem('lastVoltageSavedAt') || 0)
 
-    if (now - lastSaved >= 60000) {
-      const saveResponse = await fetch('/api/history', {
-        method: 'POST',
-      })
+          if (now - lastSaved >= 60000) {
+            const saveResponse = await fetch('/api/history', {
+              method: 'POST',
+            })
 
-      if (saveResponse.ok) {
-        sessionStorage.setItem('lastVoltageSavedAt', String(now))
+            if (saveResponse.ok) {
+              sessionStorage.setItem('lastVoltageSavedAt', String(now))
+            }
+          }
+        }
       }
-    }
-  }
-}
     } catch {
       if (active) {
+        setLiveReading((previous) =>
+          previous ? { ...previous, connected: false } : null
+        )
         setConnectionError('Could not connect to the Blynk service.')
       }
     }
@@ -87,7 +91,7 @@ useEffect(() => {
 <div className="sidebar-footer"><span className="avatar">BM</span><div>Thesis Project<small>Battery Monitoring System</small></div><span className="version">v1.0</span></div>
   </aside>
   <div className="main-shell">
-   <header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" onClick={() => setMenu(!menu)} aria-label="Toggle navigation" aria-expanded={menu} aria-controls="primary-sidebar">{menu ? <X/> : <Menu/>}</button><span>Workspace</span><ChevronRight size={14}/><strong>{pages.find(p => p.id === page)?.label}</strong></div><span className="top-status"><span className="status-dot green"/>Live environment</span></header>
+   <header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" onClick={() => setMenu(!menu)} aria-label="Toggle navigation" aria-expanded={menu} aria-controls="primary-sidebar">{menu ? <X/> : <Menu/>}</button><span>Workspace</span><ChevronRight size={14}/><strong>{pages.find(p => p.id === page)?.label}</strong></div><span className={`top-status ${liveReading?.connected ? 'online' : 'offline'}`}><span className={`status-dot ${liveReading?.connected ? 'green' : 'red'}`}/>{liveReading?.connected ? 'Live environment' : 'Offline environment'}</span></header>
    <main id="main-content">
     <div className="page-heading"><div><div className="eyebrow">AUTOMOTIVE BATTERY MONITORING</div><h1>{page === 'dashboard' ? 'Battery overview' : page === 'test-results' ? 'Test results' : 'System information'}</h1><p>{page === 'dashboard' ? 'Your battery’s vital signs. All in one place.' : page === 'test-results' ? 'A closer look at the findings behind the system.' : 'The hardware and connectivity behind Battery Monitoring System.'}</p></div><span className="outline-pill"><CarFront size={17}/> Conventional 12V battery</span></div>
     <div className="demo-banner"><div className="banner-icon">{liveReading?.connected ? <Radio size={21} /> : <Unplug size={21} />}</div><div><strong>{liveReading?.connected ? 'Blynk Connected' : 'Waiting for Device Connection'}</strong><p>{liveReading?.connected ? 'Battery readings are being retrieved from Blynk.' : connectionError || 'Checking your device connection...'}</p></div><span className="sample-pill">{liveReading?.connected ? 'LIVE DATA' : 'NOT CONNECTED'}</span></div>
