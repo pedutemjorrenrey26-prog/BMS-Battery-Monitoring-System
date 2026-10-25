@@ -3,8 +3,8 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 
 import '../styles.css'
 
-const siteName = 'AutoVolt Monitor | Automotive Battery Monitoring'
-const siteDescription = 'A clear view of your 12V automotive battery. Explore battery voltage, temperature, state of charge, and IoT thesis test results with AutoVolt Monitor.'
+const siteName = 'Battery Monitoring System | Automotive Battery Monitoring'
+const siteDescription = 'Monitor automotive battery voltage, temperature, state of charge, and condition with the IoT-Based Battery Monitoring System.'
 
 export const Route = createRootRoute({
   head: () => ({

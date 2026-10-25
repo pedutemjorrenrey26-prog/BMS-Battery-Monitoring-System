@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiBlynkRouteImport } from './routes/api.blynk'
+import { Route as ApiHistoryRouteImport } from './routes/api.history'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const ApiBlynkRoute = ApiBlynkRouteImport.update({
   path: '/api/blynk',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHistoryRoute = ApiHistoryRouteImport.update({
+  id: '/api/history',
+  path: '/api/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
+  '/api/history': typeof ApiHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
+  '/api/history': typeof ApiHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
+  '/api/history': typeof ApiHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/blynk'
+  fullPaths: '/' | '/api/blynk' | '/api/history'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/blynk'
-  id: '__root__' | '/' | '/api/blynk'
+  to: '/' | '/api/blynk' | '/api/history'
+  id: '__root__' | '/' | '/api/blynk' | '/api/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiBlynkRoute: typeof ApiBlynkRoute
+  ApiHistoryRoute: typeof ApiHistoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlynkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/history': {
+      id: '/api/history'
+      path: '/api/history'
+      fullPath: '/api/history'
+      preLoaderRoute: typeof ApiHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiBlynkRoute: ApiBlynkRoute,
+  ApiHistoryRoute: ApiHistoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
