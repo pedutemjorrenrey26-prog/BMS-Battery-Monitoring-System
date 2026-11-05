@@ -6,7 +6,7 @@ import { Activity, ArrowDownToLine, ArrowRight, Battery, BatteryCharging, CarFro
 export const Route = createFileRoute('/')({ component: App })
 type Page = 'dashboard' | 'test-results' | 'system-information'
 const pages = [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'test-results', label: 'Test Results', icon: FlaskConical }, { id: 'system-information', label: 'System Information', icon: Cpu }] as const
-const findings = [ ['Average system voltage', '13.92', 'V'], ['Average reference voltage', '13.32', 'V'], ['Average absolute error', '0.628', 'V'], ['Average voltage percentage error', '4.66', '%'] ]
+const findings = [ ['Average system voltage', '13.35', 'V'], ['Average reference voltage', '13.32', 'V'], ['Average absolute error', '0.104', 'V'], ['Average voltage percentage error', '0.77', '%'] ]
 const hardware = [{ icon: Cpu, name: 'LILYGO TTGO T-SIM A7670E R2', role: 'Microcontroller & cellular module', detail: 'Collects sensor readings and transmits battery telemetry.' }, { icon: Zap, name: 'INA219', role: 'Voltage / current sensor', detail: 'Measures electrical parameters from the battery monitoring circuit.' }, { icon: Thermometer, name: 'DS18B20', role: 'Temperature sensor', detail: 'Measures battery temperature in degrees Celsius.' }, { icon: Radio, name: 'GSM communication', role: 'Device connectivity', detail: 'Provides the cellular connection between the device and cloud.' }, { icon: Activity, name: 'Blynk IoT platform', role: 'Cloud telemetry platform', detail: 'Receives device data for monitoring and future dashboard integration.' }]
  type LiveReading = {
   connected: boolean

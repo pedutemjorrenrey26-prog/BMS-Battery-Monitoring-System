@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiBlynkRouteImport } from './routes/api.blynk'
 import { Route as ApiHistoryRouteImport } from './routes/api.history'
+import { Route as IndexBackupRouteImport } from './routes/index.backup'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const ApiHistoryRoute = ApiHistoryRouteImport.update({
   path: '/api/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndexBackupRoute = IndexBackupRouteImport.update({
+  id: '/index/backup',
+  path: '/index/backup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
   '/api/history': typeof ApiHistoryRoute
+  '/index/backup': typeof IndexBackupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
   '/api/history': typeof ApiHistoryRoute
+  '/index/backup': typeof IndexBackupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/blynk': typeof ApiBlynkRoute
   '/api/history': typeof ApiHistoryRoute
+  '/index/backup': typeof IndexBackupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/blynk' | '/api/history'
+  fullPaths: '/' | '/api/blynk' | '/api/history' | '/index/backup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/blynk' | '/api/history'
-  id: '__root__' | '/' | '/api/blynk' | '/api/history'
+  to: '/' | '/api/blynk' | '/api/history' | '/index/backup'
+  id: '__root__' | '/' | '/api/blynk' | '/api/history' | '/index/backup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiBlynkRoute: typeof ApiBlynkRoute
   ApiHistoryRoute: typeof ApiHistoryRoute
+  IndexBackupRoute: typeof IndexBackupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/index/backup': {
+      id: '/index/backup'
+      path: '/index/backup'
+      fullPath: '/index/backup'
+      preLoaderRoute: typeof IndexBackupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiBlynkRoute: ApiBlynkRoute,
   ApiHistoryRoute: ApiHistoryRoute,
+  IndexBackupRoute: IndexBackupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
